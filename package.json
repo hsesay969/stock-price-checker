@@ -1,5 +1,6 @@
 {
 	"name": "boilerplate-project-stockchecker",
+	"author": "Henry sesay",
 	"version": "0.0.1",
 	"description": "InfoSec project for freeCodeCamp",
 	"scripts": {
