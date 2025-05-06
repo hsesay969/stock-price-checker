@@ -19,29 +19,17 @@ app.use(helmet());
 // Set Content Security Policy
 app.use(helmet.contentSecurityPolicy({
   directives: {
-    defaultSrc: ["'self'"], 
-    scriptSrc: [
-      "'self'",
-      'https://stock-price-checker-proxy.freecodecamp.rocks', 
-      'https://cdnjs.cloudflare.com',
-      'https://*.googleapis.com'
-    ],
-    styleSrc: [
-      "'self'", 
-      'https://cdnjs.cloudflare.com',
-      'https://fonts.googleapis.com'
-    ],
-    connectSrc: [
-      "'self'", 
-      'https://stock-price-checker-proxy.freecodecamp.rocks',
-      'https://*.googleapis.com' 
-    ],
-    imgSrc: ["'self'", 'data:', 'https://www.google-analytics.com'],
-    fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+    defaultSrc: ["'self'"],
+    scriptSrc: ["'self'"], 
+    styleSrc: ["'self'"],  
+    connectSrc: ["'self'"],
+    imgSrc: ["'self'"],    
+    fontSrc: ["'self'"],   
     objectSrc: ["'none'"], 
-    upgradeInsecureRequests: true
+    upgradeInsecureRequests: true 
   }
 }));
+
 
 
 app.use('/public', express.static(process.cwd() + '/public'));
