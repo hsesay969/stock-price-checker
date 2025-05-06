@@ -19,27 +19,27 @@ app.use(helmet());
 // Set Content Security Policy
 app.use(helmet.contentSecurityPolicy({
   directives: {
-    defaultSrc: ["'self'"], // Only allow content from the same origin by default
+    defaultSrc: ["'self'"], 
     scriptSrc: [
-      "'self'", // Allow scripts from the same origin
-      'https://stock-price-checker-proxy.freecodecamp.rocks', // Allow scripts from the proxy API
-      'https://cdnjs.cloudflare.com', // Allow CDN resources (e.g., for testing or third-party libraries)
-      'https://*.googleapis.com' // Allow Google APIs (common for testing scripts or other resources)
+      "'self'",
+      'https://stock-price-checker-proxy.freecodecamp.rocks', 
+      'https://cdnjs.cloudflare.com',
+      'https://*.googleapis.com'
     ],
     styleSrc: [
-      "'self'", // Allow styles from the same origin
-      'https://cdnjs.cloudflare.com', // Allow styles from CDN for third-party libraries
-      'https://fonts.googleapis.com' // Allow Google Fonts
+      "'self'", 
+      'https://cdnjs.cloudflare.com',
+      'https://fonts.googleapis.com'
     ],
     connectSrc: [
-      "'self'", // Allow API calls to the same origin
-      'https://stock-price-checker-proxy.freecodecamp.rocks', // Allow API calls to the stock price proxy API
-      'https://*.googleapis.com' // Allow connections to Google APIs (if needed)
+      "'self'", 
+      'https://stock-price-checker-proxy.freecodecamp.rocks',
+      'https://*.googleapis.com' 
     ],
-    imgSrc: ["'self'", 'data:', 'https://www.google-analytics.com'], // Allow images from same origin or Google Analytics
-    fontSrc: ["'self'", 'https://fonts.gstatic.com'], // Allow Google Fonts
-    objectSrc: ["'none'"], // Disallow plugins
-    upgradeInsecureRequests: true // Set to `true` to automatically upgrade HTTP to HTTPS
+    imgSrc: ["'self'", 'data:', 'https://www.google-analytics.com'],
+    fontSrc: ["'self'", 'https://fonts.gstatic.com'],
+    objectSrc: ["'none'"], 
+    upgradeInsecureRequests: true
   }
 }));
 
