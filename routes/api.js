@@ -24,7 +24,6 @@ module.exports = function (app) {
       try {
         const stockDataPromises = stock.map(async (stockSymbol) => {
           try {
-            // Fetch stock data from the proxy API
             const response = await fetch(
               `https://stock-price-checker-proxy.freecodecamp.rocks/v1/stock/${stockSymbol}/quote`
             );
