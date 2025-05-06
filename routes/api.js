@@ -3,6 +3,8 @@
 const fetch = require('node-fetch');
 const crypto = require('crypto');
 
+// In-memory storage for demonstration 
+// In production, this would be replaced with database storage
 const stockLikes = {};
 const ipLikes = {};
 
@@ -10,9 +12,12 @@ module.exports = function (app) {
   app.route('/api/stock-prices')
     .get(async (req, res) => {
       let { stock, like } = req.query;
+      
+      // Get client IP and anonymize it with SHA-256 hash
       const clientIp = req.ip;
       const hashedIp = crypto.createHash('sha256').update(clientIp).digest('hex');
 
+      // Ensure stock is always an array for consistent processing
       if (typeof stock === 'string') {
         stock = [stock];
       } else if (!Array.isArray(stock)) {
@@ -26,25 +31,20 @@ module.exports = function (app) {
       try {
         const stockDataPromises = stock.map(async (stockSymbol) => {
           try {
-            // Mock response
-            const mockData = {
-              symbol: stockSymbol,
-              latestPrice: 100.00 + Math.random() * 100,
-            };
-            console.log(`Mocking data for ${stockSymbol}:`, mockData);
-            const data = mockData;
-
-            // Uncomment this when the proxy API is back
-            // const response = await fetch(
-            //   `https://stock-price-checker-proxy.freecodecamp.rocks/v1/stock/${stockSymbol}/quote`
-            // );
-            // if (!response.ok) {
-            //   console.error(`Fetch failed for ${stockSymbol}: ${response.status} ${response.statusText}`);
-            //   throw new Error(`Fetch failed: ${response.status} ${response.statusText}`);
-            // }
-            // const data = await response.json();
-            // console.log(`Proxy API response for ${stockSymbol}:`, data);
-
+            // Ensure stockSymbol is trimmed and uppercase
+            stockSymbol = stockSymbol.trim().toUpperCase();
+            
+            // Fetch stock data from the proxy API
+            const response = await fetch(
+              `https://stock-price-checker-proxy.freecodecamp.rocks/v1/stock/${stockSymbol}/quote`
+            );
+            
+            if (!response.ok) {
+              throw new Error(`Fetch failed: ${response.status} ${response.statusText}`);
+            }
+            
+            const data = await response.json();
+            
             if (!data.symbol || data.latestPrice == null) {
               return { error: `Invalid stock symbol: ${stockSymbol}` };
             }
@@ -56,15 +56,18 @@ module.exports = function (app) {
               return { error: `Invalid price data for ${stockSymbol}` };
             }
 
+            // Initialize likes count if not already set
             if (!stockLikes[symbol]) {
               stockLikes[symbol] = 0;
             }
 
+            // Process like request if provided
             if (like === 'true') {
               if (!ipLikes[hashedIp]) {
                 ipLikes[hashedIp] = new Set();
               }
 
+              // Only allow one like per IP per stock
               if (!ipLikes[hashedIp].has(symbol)) {
                 stockLikes[symbol]++;
                 ipLikes[hashedIp].add(symbol);
@@ -78,30 +81,36 @@ module.exports = function (app) {
             };
           } catch (error) {
             console.error(`Error fetching stock data for ${stockSymbol}:`, error);
+            // Return error object but don't throw
             return { error: `Error fetching stock data for ${stockSymbol}: ${error.message}` };
           }
         });
 
         const stockDataArray = await Promise.all(stockDataPromises);
 
-        const hasErrors = stockDataArray.some((data) => data.error);
-        if (hasErrors) {
+        // Filter out any stock data with errors
+        const validStockData = stockDataArray.filter(data => !data.error);
+        
+        if (validStockData.length === 0) {
+          // No valid stock data at all
           return res.status(400).json({
-            stockData: stockDataArray.map((data) =>
-              data.error ? { error: data.error } : data
-            ),
+            error: 'No valid stock data available',
+            details: stockDataArray.map(data => data.error || data)
           });
         }
 
-        if (stockDataArray.length === 2) {
-          const relLikes = stockDataArray[0].likes - stockDataArray[1].likes;
-          stockDataArray[0].rel_likes = relLikes;
-          stockDataArray[1].rel_likes = relLikes;
-          delete stockDataArray[0].likes;
-          delete stockDataArray[1].likes;
-          res.json({ stockData: stockDataArray });
+        // Handle different response formats based on number of valid stocks
+        if (validStockData.length === 2) {
+          // For two stocks, calculate relative likes
+          const relLikes = validStockData[0].likes - validStockData[1].likes;
+          validStockData[0].rel_likes = relLikes;
+          validStockData[1].rel_likes = -relLikes;
+          delete validStockData[0].likes;
+          delete validStockData[1].likes;
+          res.json({ stockData: validStockData });
         } else {
-          res.json({ stockData: stockDataArray[0] });
+          // For a single stock, return just that stock data
+          res.json({ stockData: validStockData[0] });
         }
       } catch (error) {
         console.error('Error processing request:', error);
@@ -110,5 +119,6 @@ module.exports = function (app) {
     });
 };
 
+// Export these for testing purposes
 module.exports.stockLikes = stockLikes;
 module.exports.ipLikes = ipLikes;
