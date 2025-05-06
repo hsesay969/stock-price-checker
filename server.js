@@ -3,6 +3,7 @@ require('dotenv').config();
 const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
+const helmet = require('helmet'); // Import Helmet
 
 const apiRoutes = require('./routes/api.js');
 const fccTestingRoutes = require('./routes/fcctesting.js');
@@ -12,14 +13,20 @@ require("./db-connection");
 
 const app = express();
 
-// Set Content Security Policy (CSP) headers
-app.use((req, res, next) => {
-  res.setHeader(
-    'Content-Security-Policy',
-    "default-src 'self'; script-src 'self'; style-src 'self'"
-  );
-  next();
-});
+// Use Helmet for security headers
+app.use(helmet());
+
+// Configure Content Security Policy using Helmet's middleware
+app.use(
+  helmet.contentSecurityPolicy({
+    directives: {
+      defaultSrc: ["'self'"],
+      scriptSrc: ["'self'"],
+      styleSrc: ["'self'"],
+      // Add other directives as needed, but for this requirement, 'self' for scripts and styles is key.
+    },
+  })
+);
 
 app.use('/public', express.static(process.cwd() + '/public'));
 
